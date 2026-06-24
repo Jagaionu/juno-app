@@ -1,7 +1,7 @@
 // Juno PWA — Service Worker
 // Caches the app shell for offline use and instant load.
 
-var CACHE = 'juno-v1';
+var CACHE = 'juno-v2';
 var SHELL = [
   './',
   './index.html'
