@@ -32,6 +32,11 @@
         .btn-outline{background:white;border:2px solid #e5e7eb;transition:all 0.2s}
         .btn-outline:active{background:#f9fafb}
         .donut-container{position:relative;width:120px;height:120px;flex-shrink:0}
+        /* Half-circle gauge that arcs above and embraces the score text */
+        .gauge-wrap{position:relative;width:190px;max-width:62%;margin:4px auto 0;aspect-ratio:1/0.62;overflow:hidden}
+        .gauge-arc{position:absolute;top:0;left:0;width:100%;aspect-ratio:1/1}
+        .gauge-arc canvas{width:100%!important;height:100%!important}
+        .gauge-center{position:absolute;left:0;right:0;top:34%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;pointer-events:none}
         .status-badge{padding:5px 12px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
         .profile-img{width:130px;height:130px;object-fit:cover;border:4px solid white;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
         .tab-btn{transition:all 0.25s cubic-bezier(0.4,0,0.2,1);position:relative}
@@ -40,6 +45,10 @@
         .tab-content{display:none!important;animation:fadeSlideIn 0.3s ease}
         .tab-content.active{display:block!important}
         @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .tab-content.slide-from-right{animation:slideFromRight 0.28s cubic-bezier(0.4,0,0.2,1)}
+        .tab-content.slide-from-left{animation:slideFromLeft 0.28s cubic-bezier(0.4,0,0.2,1)}
+        @keyframes slideFromRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes slideFromLeft{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
         @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(79,70,229,0.4)}70%{box-shadow:0 0 0 10px rgba(79,70,229,0)}100%{box-shadow:0 0 0 0 rgba(79,70,229,0)}}
         .pulse-ring{animation:pulse-ring 2s infinite}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;justify-content:center;z-index:100;animation:fadeIn 0.2s ease}
@@ -284,17 +293,31 @@
         </div>
 
         <div class="glass card p-5">
-            <h2 class="text-lg font-extrabold text-gray-900 mb-4">Weight Monitor</h2>
-            <div class="flex items-center gap-5 mb-5">
-                <div class="donut-container">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-extrabold text-gray-900">Juno's Journey</h2>
+                <button onclick="addMilestone()" class="text-[10px] font-bold text-indigo-600 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100">+ Add</button>
+            </div>
+            <div id="life-timeline" class="relative">
+                <!-- rendered by JS -->
+            </div>
+            <p class="text-[10px] text-gray-400 font-medium text-center mt-2">Tap any milestone to edit · swipe to explore</p>
+        </div>
+    </div>
+
+    <div id="tab-stats" class="tab-content space-y-4" style="display:none">
+        <div class="glass card p-5">
+            <h2 class="text-lg font-extrabold text-gray-900 mb-2">Weight Monitor</h2>
+            <div class="gauge-wrap">
+                <div class="gauge-arc">
                     <canvas id="weightScoreChart"></canvas>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center" style="padding-top:8px"><span id="score-text" class="text-2xl font-black text-gray-900">--</span><span class="text-[7px] font-black text-gray-400 uppercase tracking-widest">Score</span></div>
                 </div>
-                <div class="flex-1 space-y-2">
-                    <div class="flex items-center gap-2"><div id="weight-dot" class="w-3 h-3 rounded-full bg-emerald-500"></div><p class="text-sm font-bold text-gray-700">Status: <span id="weight-status" class="text-emerald-600">--</span></p></div>
-                    <p id="weight-advice" class="text-xs leading-relaxed text-gray-500 font-medium">--</p>
+                <div class="gauge-center">
+                    <span id="score-text" class="text-4xl font-black text-gray-900 leading-none">--</span>
+                    <span class="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mt-0.5">Score</span>
+                    <div class="flex items-center gap-1.5 mt-1.5"><div id="weight-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div><span id="weight-status" class="text-sm font-bold text-emerald-600">--</span></div>
                 </div>
             </div>
+            <p id="weight-advice" class="text-xs leading-relaxed text-gray-500 font-medium text-center mt-1 mb-4">--</p>
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Update Weight (kg)</label>
                 <div class="flex gap-2">
@@ -304,17 +327,6 @@
                 <p class="text-[10px] text-gray-400 font-medium mt-1.5">Last logged: <span id="last-weight-date">--</span></p>
             </div>
         </div>
-
-        <div class="glass card p-5">
-            <h2 class="text-lg font-extrabold text-gray-900 mb-4">Juno's Journey</h2>
-            <div id="life-timeline" class="relative">
-                <!-- rendered by JS -->
-            </div>
-
-        </div>
-    </div>
-
-    <div id="tab-stats" class="tab-content space-y-4" style="display:none">
         <div class="glass card p-5">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-lg font-extrabold text-gray-900">Weight Progression</h2>
@@ -325,7 +337,7 @@
                 </div>
             </div>
             <div class="relative" style="height:220px"><canvas id="weightChart"></canvas></div>
-            <p id="chart-empty-msg" class="hidden text-center text-sm text-gray-400 font-medium py-8">No weight data yet. Log a weight in the Profile tab.</p>
+            <p id="chart-empty-msg" class="hidden text-center text-sm text-gray-400 font-medium py-8">No weight data yet. Log a weight above.</p>
         </div>
         <div class="glass card p-5">
             <div class="flex justify-between items-center mb-3"><h2 class="text-lg font-extrabold text-gray-900">Weight Log</h2><span id="weight-count" class="text-[10px] font-bold text-gray-400">0 entries</span></div>
@@ -472,7 +484,19 @@ var DEF = {
   ],
   deworming: [],
   vetVisits: [],
-  medications: []
+  medications: [],
+  milestones: [
+    { id:'m0', w: 0,  e: '🐾', l: 'Born',        date: '' },
+    { id:'m1', w: 4,  e: '🍼', l: 'Weaning',     date: '' },
+    { id:'m2', w: 8,  e: '💉', l: 'Vaccines',    date: '' },
+    { id:'m3', w: 9,  e: '🏠', l: 'New Home',    date: '7 Jun' },
+    { id:'m4', w: 12, e: '🐕', l: 'Social',      date: '' },
+    { id:'m5', w: 16, e: '🦷', l: 'Teething',    date: '' },
+    { id:'m6', w: 26, e: '✂️', l: 'First Groom', date: '' },
+    { id:'m7', w: 39, e: '🧑', l: 'Teen',        date: '' },
+    { id:'m8', w: 52, e: '🎂', l: "1st B'day",   date: '' },
+    { id:'m9', w: 104,e: '🏆', l: 'Adult',       date: '' }
+  ]
 };
 
 var AD = loadData();
@@ -915,19 +939,50 @@ function makeSquareIcon(srcUrl, size, cb) {
   } catch (e) { cb(null); }
 }
 
+// Crop the current photo to a centered CIRCLE at `size`px → PNG data URL
+// (transparent corners). Used for the round home-screen / launch icon.
+function makeRoundIcon(srcUrl, size, cb) {
+  try {
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var cv = document.createElement('canvas');
+        cv.width = size; cv.height = size;
+        var cx = cv.getContext('2d');
+        cx.clearRect(0, 0, size, size);
+        cx.save();
+        cx.beginPath();
+        cx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        cx.closePath();
+        cx.clip();
+        var s = Math.min(img.width, img.height);
+        var sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+        cx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+        cx.restore();
+        cb(cv.toDataURL('image/png'));
+      } catch (e) { cb(null); }
+    };
+    img.onerror = function() { cb(null); };
+    img.src = srcUrl;
+  } catch (e) { cb(null); }
+}
+
 function setupPWA() {
   var src = AD.profile.photo || DEFAULT_PHOTO || '';
   if (!src) return;
 
-  // 512 for the manifest/Android, 180 for the iOS apple-touch-icon.
-  makeSquareIcon(src, 512, function(icon512) {
-    makeSquareIcon(src, 192, function(icon192) {
-      var big = icon512 || icon192;
-      if (!big) return;
+  // Round icons for iOS apple-touch-icon + the launch/home-screen "any" icon.
+  // Square icon kept for Android "maskable" (the OS applies its own mask).
+  makeRoundIcon(src, 512, function(round512) {
+    makeRoundIcon(src, 192, function(round192) {
+      makeSquareIcon(src, 512, function(square512) {
+      var roundBig = round512 || round192;
+      var squareBig = square512 || roundBig;
+      if (!roundBig) return;
 
-      // iOS home-screen icon
+      // iOS home-screen icon (round)
       var apple = el('pwa-apple-icon');
-      if (apple) apple.setAttribute('href', icon192 || big);
+      if (apple) apple.setAttribute('href', round192 || roundBig);
 
       // Android/Chrome manifest (built in-memory, no separate file needed)
       var manifest = {
@@ -941,9 +996,9 @@ function setupPWA() {
         theme_color: "#0a0a0f",
         orientation: "portrait",
         icons: [
-          { src: icon192 || big, sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: big, sizes: "512x512", type: "image/png", purpose: "any" },
-          { src: big, sizes: "512x512", type: "image/png", purpose: "maskable" }
+          { src: round192 || roundBig, sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: roundBig, sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: squareBig, sizes: "512x512", type: "image/png", purpose: "maskable" }
         ]
       };
       try {
@@ -956,6 +1011,7 @@ function setupPWA() {
           link.setAttribute('href', url);
         }
       } catch (e) {}
+      });
     });
   });
 
@@ -1048,7 +1104,7 @@ function initWeightScoreChart() {
   wsc = new Chart(ctx, {
     type: 'doughnut',
     data: { datasets: [{ data: [0, 100], backgroundColor: ['#7c3aed', '#1c1c28'], borderWidth: 0, circumference: 180, rotation: 270 }] },
-    options: { cutout: '70%', plugins: { tooltip: { enabled: false } }, events: [], responsive: true, maintainAspectRatio: true }
+    options: { cutout: '72%', layout: { padding: 0 }, plugins: { tooltip: { enabled: false } }, events: [], responsive: true, maintainAspectRatio: true }
   });
 }
 
@@ -1174,7 +1230,7 @@ function updateWeightLogList() {
   el('weight-count').innerText = AD.weightLog.length + ' entries';
 
   if (AD.weightLog.length === 0) {
-    c.innerHTML = '<p class="text-sm text-gray-400 font-medium text-center py-6">No entries yet. Log a weight in the Profile tab.</p>';
+    c.innerHTML = '<p class="text-sm text-gray-400 font-medium text-center py-6">No entries yet. Log a weight above.</p>';
     return;
   }
 
@@ -1203,24 +1259,14 @@ function buildTimeline(containerId) {
     var d = new Date(dob.getTime() + m.w * 7 * 86400000);
     return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
   }
-  var ms = [
-    { w: 0,  e: '🐾', l: 'Born',        sub: 'Day 1' },
-    { w: 4,  e: '🍼', l: 'Weaning',     sub: '4 wks' },
-    { w: 8,  e: '💉', l: 'Vaccines',    sub: '8 wks' },
-    { w: 9,  e: '🏠', l: 'New Home',    sub: '7 Jun', date: '7 Jun' },
-    { w: 12, e: '🐕', l: 'Social',      sub: '12 wks' },
-    { w: 16, e: '🦷', l: 'Teething',    sub: '16 wks' },
-    { w: 26, e: '✂️', l: 'First Groom', sub: '6 mo' },
-    { w: 39, e: '🧑', l: 'Teen',        sub: '9 mo' },
-    { w: 52, e: '🎂', l: "1st B'day",  sub: '1 yr' },
-    { w: 104,e: '🏆', l: 'Adult',       sub: '2 yrs' }
-  ];
-  // Find current milestone index
+  // Sort milestones chronologically by week
+  var ms = (AD.milestones || []).slice().sort(function(a, b) { return a.w - b.w; });
+
+  // Find current milestone index (last one Juno has reached)
   var cur = -1;
   for (var i = ms.length - 1; i >= 0; i--) { if (aW >= ms[i].w) { cur = i; break; } }
-  var next = cur + 1 < ms.length ? cur + 1 : -1;
 
-  var html = '<div class="tl-inner" style="min-width:' + (ms.length * 68) + 'px">';
+  var html = '<div class="tl-inner" style="min-width:' + (ms.length * 72) + 'px">';
   for (var i = 0; i < ms.length; i++) {
     var m = ms[i];
     var isCur = i === cur;
@@ -1228,7 +1274,7 @@ function buildTimeline(containerId) {
     var dotCls = isCur ? 'current' : (isDone ? 'done' : 'future');
     var labelCol = isCur ? 'color:#f59e0b' : (isDone ? 'color:#a78bfa' : 'color:#64748b');
     var dateStr = milestoneDate(m);
-    html += '<div class="tl-node">';
+    html += '<div class="tl-node"' + (isCur ? ' data-current="1"' : '') + ' onclick="editMilestone(\'' + m.id + '\')">';
     html += '<div class="tl-dot ' + dotCls + '">' + m.e + '</div>';
     html += '<div class="tl-label" style="' + labelCol + '">' + m.l + '</div>';
     html += '<div class="tl-date">' + dateStr + '</div>';
@@ -1245,6 +1291,75 @@ function buildTimeline(containerId) {
   c.innerHTML = '';
   c.appendChild(wrap);
   initTimelineDrag(wrap);
+
+  // Center the current milestone — past on the left, future on the right
+  requestAnimationFrame(function() {
+    var curNode = wrap.querySelector('[data-current="1"]');
+    if (curNode) {
+      var target = curNode.offsetLeft + curNode.offsetWidth / 2 - wrap.clientWidth / 2;
+      wrap.scrollLeft = Math.max(0, target);
+    }
+  });
+}
+
+// === Add / edit / delete a milestone ===
+function editMilestone(id) {
+  var m = (AD.milestones || []).filter(function(x) { return x.id === id; })[0];
+  if (!m) return;
+  openMilestoneModal(m);
+}
+
+function addMilestone() {
+  openMilestoneModal(null);
+}
+
+function openMilestoneModal(m) {
+  var isNew = !m;
+  m = m || { id: '', w: Math.round(ageWeeks()), e: '⭐', l: '', date: '' };
+  var h = '<div class="modal-overlay" id="msm" onclick="if(event.target===this)closeModal(\'msm\')">';
+  h += '<div class="modal-sheet">';
+  h += '<div class="flex items-center justify-between mb-5"><h3 class="text-xl font-extrabold text-gray-900">' + (isNew ? 'Add Milestone' : 'Edit Milestone') + '</h3><button onclick="closeModal(\'msm\')" class="p-1.5 rounded-xl hover:bg-gray-100"><i data-lucide="x" class="w-5 h-5 text-gray-400"></i></button></div>';
+  h += '<div class="space-y-4">';
+  h += '<div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Emoji</label><input id="ms-emoji" maxlength="4" value="' + m.e + '" class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 font-bold text-gray-700 bg-gray-50 text-center text-2xl"></div>';
+  h += '<div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Title</label><input id="ms-label" value="' + m.l.replace(/"/g, '&quot;') + '" placeholder="e.g. First Walk" class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 font-bold text-gray-700 bg-gray-50"></div>';
+  h += '<div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Age (weeks)</label><input id="ms-weeks" type="number" min="0" max="1040" step="1" value="' + m.w + '" class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 font-bold text-gray-700 bg-gray-50"></div>';
+  h += '<div><label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Date label (optional)</label><input id="ms-date" value="' + (m.date || '').replace(/"/g, '&quot;') + '" placeholder="auto from age if blank" class="w-full px-4 py-3 rounded-xl border-2 border-gray-100 font-bold text-gray-700 bg-gray-50"></div>';
+  h += '<button onclick="saveMilestone(\'' + m.id + '\')" class="btn-primary text-white w-full py-3 rounded-xl font-bold">' + (isNew ? 'Add Milestone' : 'Save Changes') + '</button>';
+  if (!isNew) h += '<button onclick="deleteMilestone(\'' + m.id + '\')" class="btn-danger text-white w-full py-3 rounded-xl font-bold">Delete</button>';
+  h += '</div></div></div>';
+  el('modal-container').innerHTML = h;
+  lucide.createIcons();
+}
+
+function saveMilestone(id) {
+  var e = el('ms-emoji').value.trim() || '⭐';
+  var l = el('ms-label').value.trim();
+  var w = parseInt(el('ms-weeks').value, 10);
+  var date = el('ms-date').value.trim();
+  if (!l) { alert('Please enter a title.'); return; }
+  if (isNaN(w) || w < 0) { alert('Please enter a valid age in weeks.'); return; }
+  if (!AD.milestones) AD.milestones = [];
+  if (id) {
+    for (var i = 0; i < AD.milestones.length; i++) {
+      if (AD.milestones[i].id === id) {
+        AD.milestones[i] = { id: id, w: w, e: e, l: l, date: date };
+        break;
+      }
+    }
+  } else {
+    AD.milestones.push({ id: gid(), w: w, e: e, l: l, date: date });
+  }
+  saveData();
+  closeModal('msm');
+  updateLifeTimeline();
+}
+
+function deleteMilestone(id) {
+  if (!confirm('Delete this milestone?')) return;
+  AD.milestones = (AD.milestones || []).filter(function(x) { return x.id !== id; });
+  saveData();
+  closeModal('msm');
+  updateLifeTimeline();
 }
 
 function initTimelineDrag(el) {
@@ -1275,6 +1390,7 @@ function updateLifeTimeline() {
 
 
 function updateStats() {
+  updateScore();
   updateWeightChart();
   updateWeightLogList();
 }
@@ -1466,18 +1582,66 @@ function deleteMedication(id) {
 }
 
 // === TAB NAVIGATION ===
-function switchTab(tab) {
+var TAB_ORDER = ['profile', 'stats', 'health'];
+var currentTab = 'profile';
+
+function switchTab(tab, dir) {
   var contents = document.querySelectorAll('.tab-content');
   for (var i = 0; i < contents.length; i++) { contents[i].classList.remove('active'); }
   var btns = document.querySelectorAll('.tab-btn');
   for (var j = 0; j < btns.length; j++) { btns[j].classList.remove('active'); }
 
-  el('tab-' + tab).classList.add('active');
+  var content = el('tab-' + tab);
   el('nav-' + tab).classList.add('active');
+
+  // Directional slide animation when swiping
+  if (dir) {
+    content.classList.remove('slide-from-left', 'slide-from-right');
+    void content.offsetWidth; // reflow to restart animation
+    content.classList.add(dir === 'next' ? 'slide-from-right' : 'slide-from-left');
+  }
+  content.classList.add('active');
+
+  currentTab = tab;
 
   if (tab === 'profile') updateProfile();
   else if (tab === 'stats') updateStats();
   else if (tab === 'health') updateHealthPage();
+}
+
+// Swipe left/right to move between tabs (Android + iOS)
+function initTabSwipe() {
+  var main = document.querySelector('main');
+  if (!main) return;
+  var startX = 0, startY = 0, tracking = false;
+
+  main.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    // Ignore swipes that start on a horizontally-scrollable area (timeline, tables)
+    var t = e.target;
+    while (t && t !== main) {
+      if (t.classList && (t.classList.contains('tl-scroll') || t.classList.contains('overflow-x-auto'))) { tracking = false; return; }
+      t = t.parentNode;
+    }
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+
+  main.addEventListener('touchend', function(e) {
+    if (!tracking) return;
+    tracking = false;
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    // Mostly-horizontal swipe, far enough
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    var idx = TAB_ORDER.indexOf(currentTab);
+    if (dx < 0 && idx < TAB_ORDER.length - 1) {
+      switchTab(TAB_ORDER[idx + 1], 'next');
+    } else if (dx > 0 && idx > 0) {
+      switchTab(TAB_ORDER[idx - 1], 'prev');
+    }
+  }, { passive: true });
 }
 
 // === FOOD ALERTS ===
@@ -1684,6 +1848,8 @@ function init() {
   setTimeout(setupPWA, 400); // defer: don't compete with initial photo render
   initWeightScoreChart();
   initWeightProgressChart();
+  initTabSwipe();
+  maybeShowIosInstallHint();
   updateProfile();
   updateStats();
   updateHealthPage();
@@ -1714,6 +1880,45 @@ window.addEventListener('beforeinstallprompt', function(e) {
     setTimeout(function() { if (banner.parentNode) banner.remove(); }, 8000);
   }, 3000);
 });
+
+// iOS Safari has NO beforeinstallprompt — the user must use Share → Add to
+// Home Screen. Show a one-time guided hint for iPhone/iPad users instead.
+function maybeShowIosInstallHint() {
+  var ua = navigator.userAgent || '';
+  var isIos = /iPhone|iPad|iPod/.test(ua) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isIos || standalone) return;
+  if (localStorage.getItem('juno_ios_hint_dismissed') === '1') return;
+
+  setTimeout(function() {
+    var card = document.createElement('div');
+    card.id = 'ios-install-hint';
+    card.style.cssText = 'position:fixed;left:16px;right:16px;bottom:84px;z-index:999;max-width:420px;margin:0 auto;' +
+      'background:linear-gradient(145deg,#13131a,#1c1c28);color:#f1f5f9;border:1px solid rgba(167,139,250,0.4);' +
+      'border-radius:22px;padding:16px 18px;box-shadow:0 12px 40px rgba(0,0,0,0.6);' +
+      'animation:fadeSlideIn 0.4s ease';
+    card.innerHTML =
+      '<div style="display:flex;align-items:flex-start;gap:12px">' +
+        '<div style="font-size:28px;line-height:1">🐾</div>' +
+        '<div style="flex:1">' +
+          '<p style="font-weight:800;font-size:0.85rem;margin:0 0 4px">Install Juno on your iPhone</p>' +
+          '<p style="font-size:0.72rem;color:#94a3b8;line-height:1.5;margin:0">' +
+            'Tap the <strong style="color:#a78bfa">Share</strong> button ' +
+            '<span style="display:inline-block;transform:translateY(2px)">⬆️</span> below, then choose ' +
+            '<strong style="color:#a78bfa">“Add to Home Screen”</strong>.' +
+          '</p>' +
+        '</div>' +
+        '<button id="ios-hint-x" style="background:none;border:none;color:#64748b;font-size:1.3rem;line-height:1;cursor:pointer;padding:0 2px">&times;</button>' +
+      '</div>';
+    document.body.appendChild(card);
+    document.getElementById('ios-hint-x').onclick = function() {
+      localStorage.setItem('juno_ios_hint_dismissed', '1');
+      card.remove();
+    };
+  }, 1500);
+}
 
 window.onload = init;
 
